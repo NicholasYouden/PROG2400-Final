@@ -1,0 +1,91 @@
+import java.util.*;
+
+public class Auction {
+    private PriorityQueue<Bid> bids; // Max heap to store bids
+    private Map<Integer, Bid> bidMapping; // HashMap to map bid amounts to bid objects
+
+    public Auction() {
+        this.bids = new PriorityQueue<>(Collections.reverseOrder());
+        this.bidMapping = new HashMap<>();
+    }
+
+    public String placeBid(int bidderId, int bidAmount) {
+        if (bidAmount <= getMinimumBid()) {
+            return "Bid amount must be higher than the minimum bid.";
+        }
+
+        Bid bid = new Bid(bidderId, bidAmount);
+        bids.offer(bid);
+        bidMapping.put(bidAmount, bid);
+
+        return "Bid placed successfully.";
+    }
+
+    public int getHighestBid() {
+        if (bids.isEmpty()) {
+            return 0;
+        }
+
+        return bids.peek().getBidAmount();
+    }
+
+    public int getMinimumBid() {
+        if (bids.isEmpty()) {
+            return 0;
+        }
+
+        return bids.peek().getBidAmount() + 1;
+    }
+
+    public String closeAuction() {
+        if (bids.isEmpty()) {
+            return "No bids placed.";
+        }
+
+        int highestBid = getHighestBid();
+        List<Bid> winners = new ArrayList<>();
+
+        while (!bids.isEmpty() && bids.peek().getBidAmount() == highestBid) {
+            winners.add(bids.poll());
+        }
+
+        if (winners.size() == 1) {
+            return "The winner is bidder " + winners.get(0).getBidderId() + " with a bid of $" + highestBid + ".";
+        } else {
+            winners.sort(Comparator.comparingLong(Bid::getTimestamp)); // Sort by timestamp
+            return "The winner is bidder " + winners.get(0).getBidderId() + " with a bid of $" + highestBid + " placed first.";
+        }
+    }
+
+    public static void main(String[] args) {
+        Auction auction = new Auction();
+        System.out.println(auction.placeBid(1, 100));
+        System.out.println(auction.placeBid(2, 150));
+        System.out.println(auction.placeBid(3, 120));
+        System.out.println(auction.closeAuction());
+    }
+
+    static class Bid {
+        private int bidderId;
+        private int bidAmount;
+        private long timestamp;
+
+        public Bid(int bidderId, int bidAmount) {
+            this.bidderId = bidderId;
+            this.bidAmount = bidAmount;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        public int getBidderId() {
+            return bidderId;
+        }
+
+        public int getBidAmount() {
+            return bidAmount;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+    }
+}
